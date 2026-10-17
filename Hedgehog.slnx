@@ -1,0 +1,25 @@
+<Solution>
+  <Folder Name="/Solution items/">
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Hedgehog.MSTest/Hedgehog.MSTest.fsproj" />
+    <Project Path="src/Hedgehog.NUnit/Hedgehog.NUnit.fsproj" />
+    <Project Path="src/Hedgehog.Xunit/Hedgehog.Xunit.fsproj" />
+    <Project Path="src/Hedgehog/Hedgehog.fsproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Hedgehog.Autogen.Tests.CSharp/Hedgehog.Autogen.Tests.CSharp.csproj" />
+    <Project Path="tests/Hedgehog.Autogen.Tests/Hedgehog.Autogen.Tests.fsproj" />
+    <Project Path="tests/Hedgehog.Benchmarks/Hedgehog.Benchmarks.fsproj" />
+    <Project Path="tests/Hedgehog.DieHarder/Hedgehog.DieHarder.fsproj" />
+    <Project Path="tests/Hedgehog.Linq.Tests/Hedgehog.Linq.Tests.csproj" />
+    <Project Path="tests/Hedgehog.MSTest.Tests.CSharp/Hedgehog.MSTest.Tests.CSharp.csproj" />
+    <Project Path="tests/Hedgehog.MSTest.Tests.FSharp.MinimumMSTest/Hedgehog.MSTest.Tests.FSharp.MinimumMSTest.fsproj" />
+    <Project Path="tests/Hedgehog.MSTest.Tests.FSharp/Hedgehog.MSTest.Tests.FSharp.fsproj" />
+    <Project Path="tests/Hedgehog.NUnit.Tests.FSharp/Hedgehog.NUnit.Tests.FSharp.fsproj" />
+    <Project Path="tests/Hedgehog.Tests/Hedgehog.Tests.fsproj" />
+    <Project Path="tests/Hedgehog.Xunit.Tests.CSharp/Hedgehog.Xunit.Tests.CSharp.csproj" />
+    <Project Path="tests/Hedgehog.Xunit.Tests.FSharp/Hedgehog.Xunit.Tests.FSharp.fsproj" />
+  </Folder>
+</Solution>
