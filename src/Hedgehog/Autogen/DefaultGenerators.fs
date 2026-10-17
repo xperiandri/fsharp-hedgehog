@@ -1,12 +1,21 @@
 namespace Hedgehog.AutoGen
 
+open System.Collections.Frozen
 open System.Collections.Generic
 open System.Collections.ObjectModel
-open System.Linq
 open Hedgehog
 open Hedgehog.FSharp
 open System
 open System.Collections.Immutable
+
+module private DictionaryGenerators =
+
+    /// Generates a dictionary out of the pairs of generated keys and values, and makes what 'build' makes of it.
+    /// The pairs are collapsed by 'dict', that is by the structural equality of F# for the keys, and the last one of
+    /// the equal keys wins. The dictionary that is made of them has the default comparer.
+    let generate<'k, 'v, 'c when 'k : equality> (range : Range<int>) (keyGen : Gen<'k>) (valueGen : Gen<'v>) (build : Dictionary<'k, 'v> -> 'c) : Gen<'c> =
+        ArrayCore.generate (fun kvps -> build (Dictionary(dict kvps))) range (Gen.toRandom (Gen.zip keyGen valueGen))
+        |> Gen.ofRandom
 
 [<Sealed>]
 type DefaultGenerators =
@@ -52,57 +61,121 @@ type DefaultGenerators =
 
     static member ImmutableList<'a>(context: AutoGenContext, valueGen: Gen<'a>) : Gen<ImmutableList<'a>> =
         if context.CanRecurse then
-            valueGen |> Gen.list context.CollectionRange |> Gen.map ImmutableList.CreateRange
+            CollectionGen.immutableList context.CollectionRange valueGen
         else
             Gen.constant ImmutableList<'a>.Empty
 
     static member IImmutableList<'a>(context: AutoGenContext, valueGen: Gen<'a>) : Gen<IImmutableList<'a>> =
         if context.CanRecurse then
-            DefaultGenerators.ImmutableList(context, valueGen) |> Gen.map (fun x -> x :> IImmutableList<'a>)
+            CollectionGen.iImmutableList context.CollectionRange valueGen
         else
             Gen.constant (ImmutableList<'a>.Empty :> IImmutableList<'a>)
 
     static member ImmutableArray<'a>(context: AutoGenContext, valueGen: Gen<'a>) : Gen<ImmutableArray<'a>> =
         if context.CanRecurse then
-            valueGen |> Gen.array context.CollectionRange |> Gen.map ImmutableArray.CreateRange
+            CollectionGen.immutableArray context.CollectionRange valueGen
         else
             Gen.constant ImmutableArray<'a>.Empty
 
     static member ImmutableHashSet<'a when 'a : equality>(context: AutoGenContext, valueGen: Gen<'a>) : Gen<ImmutableHashSet<'a>> =
         if context.CanRecurse then
-            valueGen |> Gen.list context.CollectionRange |> Gen.map ImmutableHashSet.CreateRange
+            CollectionGen.immutableHashSet context.CollectionRange valueGen
         else
             Gen.constant ImmutableHashSet<'a>.Empty
 
     static member ImmutableSet<'a when 'a : comparison>(context: AutoGenContext, valueGen: Gen<'a>) : Gen<ImmutableSortedSet<'a>> =
         if context.CanRecurse then
-            valueGen |> Gen.list context.CollectionRange |> Gen.map ImmutableSortedSet.CreateRange
+            CollectionGen.immutableSortedSet context.CollectionRange valueGen
         else
             Gen.constant ImmutableSortedSet<'a>.Empty
 
     static member IImmutableSet<'a when 'a : equality>(context: AutoGenContext, valueGen: Gen<'a>) : Gen<IImmutableSet<'a>> =
         if context.CanRecurse then
-            DefaultGenerators.ImmutableHashSet(context, valueGen) |> Gen.map (fun x -> x :> IImmutableSet<'a>)
+            CollectionGen.iImmutableSet context.CollectionRange valueGen
         else
             Gen.constant (ImmutableHashSet<'a>.Empty :> IImmutableSet<'a>)
 
+    static member ImmutableDictionary<'k, 'v when 'k : equality>(context: AutoGenContext, keyGen: Gen<'k>, valueGen: Gen<'v>) : Gen<ImmutableDictionary<'k, 'v>> =
+        if context.CanRecurse then
+            CollectionGen.immutableDictionary context.CollectionRange keyGen valueGen
+        else
+            Gen.constant ImmutableDictionary<'k, 'v>.Empty
+
+    static member ImmutableSortedDictionary<'k, 'v when 'k : comparison>(context: AutoGenContext, keyGen: Gen<'k>, valueGen: Gen<'v>) : Gen<ImmutableSortedDictionary<'k, 'v>> =
+        if context.CanRecurse then
+            CollectionGen.immutableSortedDictionary context.CollectionRange keyGen valueGen
+        else
+            Gen.constant ImmutableSortedDictionary<'k, 'v>.Empty
+
+    static member ImmutableQueue<'a>(context: AutoGenContext, valueGen: Gen<'a>) : Gen<ImmutableQueue<'a>> =
+        if context.CanRecurse then
+            CollectionGen.immutableQueue context.CollectionRange valueGen
+        else
+            Gen.constant ImmutableQueue<'a>.Empty
+
+    static member ImmutableStack<'a>(context: AutoGenContext, valueGen: Gen<'a>) : Gen<ImmutableStack<'a>> =
+        if context.CanRecurse then
+            CollectionGen.immutableStack context.CollectionRange valueGen
+        else
+            Gen.constant ImmutableStack<'a>.Empty
+
+    static member FrozenSet<'a when 'a : equality>(context: AutoGenContext, valueGen: Gen<'a>) : Gen<FrozenSet<'a>> =
+        if context.CanRecurse then
+            CollectionGen.frozenSet context.CollectionRange valueGen
+        else
+            Gen.constant FrozenSet<'a>.Empty
+
+    static member FrozenDictionary<'k, 'v when 'k : equality>(context: AutoGenContext, keyGen: Gen<'k>, valueGen: Gen<'v>) : Gen<FrozenDictionary<'k, 'v>> =
+        if context.CanRecurse then
+            CollectionGen.frozenDictionary context.CollectionRange keyGen valueGen
+        else
+            Gen.constant FrozenDictionary<'k, 'v>.Empty
+
+    // The mutable collections are new for every value, also when there is no recursion left, so that a test that
+    // changes one of them does not change the others.
+    static member HashSet<'a when 'a : equality>(context: AutoGenContext, valueGen: Gen<'a>) : Gen<HashSet<'a>> =
+        if context.CanRecurse then
+            CollectionGen.hashSet context.CollectionRange valueGen
+        else
+            Gen.delay (fun () -> Gen.constant (HashSet<'a>()))
+
+    static member SortedSet<'a when 'a : comparison>(context: AutoGenContext, valueGen: Gen<'a>) : Gen<SortedSet<'a>> =
+        if context.CanRecurse then
+            CollectionGen.sortedSet context.CollectionRange valueGen
+        else
+            Gen.delay (fun () -> Gen.constant (SortedSet<'a>()))
+
+    static member ISet<'a when 'a : equality>(context: AutoGenContext, valueGen: Gen<'a>) : Gen<ISet<'a>> =
+        if context.CanRecurse then
+            CollectionGen.iSet context.CollectionRange valueGen
+        else
+            Gen.delay (fun () -> Gen.constant (HashSet<'a>() :> ISet<'a>))
+
+    // The pairs are collapsed the way they always were: with the structural equality of F# ('dict'), the last one of
+    // equal keys wins, and the dictionary that is made of them has the default comparer.
     static member Dictionary<'k, 'v when 'k: equality>(context: AutoGenContext, keyGen: Gen<'k>, valueGen: Gen<'v>): Gen<Dictionary<'k, 'v>> =
         if context.CanRecurse then
-            gen {
-                let! kvps = Gen.zip keyGen valueGen |> Gen.list context.CollectionRange
-                return Dictionary(dict kvps)
-            }
+            DictionaryGenerators.generate context.CollectionRange keyGen valueGen id
         else
             Gen.constant (Dictionary<'k, 'v>())
 
     static member IDictionary<'k, 'v when 'k: equality>(context: AutoGenContext, keyGen: Gen<'k>, valueGen: Gen<'v>): Gen<IDictionary<'k, 'v>> =
-        DefaultGenerators.Dictionary(context, keyGen, valueGen) |> Gen.map (fun x -> x :> IDictionary<'k, 'v>)
+        if context.CanRecurse then
+            DictionaryGenerators.generate context.CollectionRange keyGen valueGen (fun x -> x :> IDictionary<'k, 'v>)
+        else
+            Gen.constant (Dictionary<'k, 'v>() :> IDictionary<'k, 'v>)
 
     static member ReadOnlyDictionary<'k, 'v when 'k: equality>(context: AutoGenContext, keyGen: Gen<'k>, valueGen: Gen<'v>): Gen<ReadOnlyDictionary<'k, 'v>> =
-        DefaultGenerators.Dictionary(context, keyGen, valueGen) |> Gen.map (fun x -> ReadOnlyDictionary(x))
+        if context.CanRecurse then
+            DictionaryGenerators.generate context.CollectionRange keyGen valueGen (fun x -> ReadOnlyDictionary(x))
+        else
+            Gen.constant (ReadOnlyDictionary(Dictionary<'k, 'v>()))
 
     static member IReadOnlyDictionary<'k, 'v when 'k: equality>(context: AutoGenContext, keyGen: Gen<'k>, valueGen: Gen<'v>): Gen<IReadOnlyDictionary<'k, 'v>> =
-        DefaultGenerators.Dictionary(context, keyGen, valueGen) |> Gen.map (fun x -> ReadOnlyDictionary(x))
+        if context.CanRecurse then
+            DictionaryGenerators.generate context.CollectionRange keyGen valueGen (fun x -> ReadOnlyDictionary(x) :> IReadOnlyDictionary<'k, 'v>)
+        else
+            Gen.constant (ReadOnlyDictionary(Dictionary<'k, 'v>()) :> IReadOnlyDictionary<'k, 'v>)
 
     static member FSharpList<'a>(context: AutoGenContext, valueGen: Gen<'a>) : Gen<'a list> =
         if context.CanRecurse then
@@ -111,16 +184,40 @@ type DefaultGenerators =
             Gen.constant []
 
     static member List<'a>(context: AutoGenContext, valueGen: Gen<'a>) : Gen<List<'a>> =
-        DefaultGenerators.FSharpList(context, valueGen) |> Gen.map _.ToList()
+        if context.CanRecurse then
+            CollectionGen.resizeArray context.CollectionRange valueGen
+        else
+            Gen.delay (fun () -> Gen.constant (List<'a>()))
 
     static member IList<'a>(context: AutoGenContext, valueGen: Gen<'a>) : Gen<IList<'a>> =
-        DefaultGenerators.FSharpList(context, valueGen) |> Gen.map _.ToList()
+        if context.CanRecurse then
+            CollectionGen.iList context.CollectionRange valueGen
+        else
+            Gen.delay (fun () -> Gen.constant (List<'a>() :> IList<'a>))
+
+    static member ICollection<'a>(context: AutoGenContext, valueGen: Gen<'a>) : Gen<ICollection<'a>> =
+        if context.CanRecurse then
+            CollectionGen.iCollection context.CollectionRange valueGen
+        else
+            Gen.delay (fun () -> Gen.constant (List<'a>() :> ICollection<'a>))
 
     static member IReadOnlyList<'a>(context: AutoGenContext, valueGen: Gen<'a>) : Gen<IReadOnlyList<'a>> =
-        DefaultGenerators.FSharpList(context, valueGen) |> Gen.map _.ToList().AsReadOnly()
+        if context.CanRecurse then
+            CollectionGen.iReadOnlyList context.CollectionRange valueGen
+        else
+            Gen.constant (List<'a>().AsReadOnly() :> IReadOnlyList<'a>)
+
+    static member IReadOnlyCollection<'a>(context: AutoGenContext, valueGen: Gen<'a>) : Gen<IReadOnlyCollection<'a>> =
+        if context.CanRecurse then
+            CollectionGen.iReadOnlyCollection context.CollectionRange valueGen
+        else
+            Gen.constant (List<'a>().AsReadOnly() :> IReadOnlyCollection<'a>)
 
     static member Seq<'a>(context: AutoGenContext, valueGen: Gen<'a>) : Gen<seq<'a>> =
-        DefaultGenerators.FSharpList(context, valueGen) |> Gen.map Seq.ofList
+        if context.CanRecurse then
+            CollectionGen.iEnumerable context.CollectionRange valueGen
+        else
+            Gen.constant (List.empty<'a> :> seq<'a>)
 
     static member Option<'a>(context: AutoGenContext, valueGen: Gen<'a>) : Gen<'a option> =
         if context.CanRecurse then Gen.option valueGen
@@ -133,16 +230,15 @@ type DefaultGenerators =
 
     static member Set<'a when 'a : comparison>(context: AutoGenContext, valueGen: Gen<'a>) : Gen<Set<'a>> =
         if context.CanRecurse then
-            valueGen |> Gen.list context.CollectionRange |> Gen.map Set.ofList
+            ArrayCore.generate Set.ofArray context.CollectionRange (Gen.toRandom valueGen)
+            |> Gen.ofRandom
         else
             Gen.constant Set.empty
 
     static member Map<'k, 'v when 'k : comparison>(context: AutoGenContext, keyGen: Gen<'k>, valueGen: Gen<'v>) : Gen<Map<'k, 'v>> =
         if context.CanRecurse then
-            gen {
-                let! kvps = Gen.zip keyGen valueGen |> Gen.list context.CollectionRange
-                return Map.ofList kvps
-            }
+            ArrayCore.generate Map.ofArray context.CollectionRange (Gen.toRandom (Gen.zip keyGen valueGen))
+            |> Gen.ofRandom
         else
             Gen.constant Map.empty<'k, 'v>
 
