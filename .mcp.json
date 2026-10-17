@@ -1,5 +1,14 @@
 {
   "servers": {
+    "F#": {
+      "type": "stdio",
+      "command": "dotnet",
+      "args": [
+        "tool",
+        "run",
+        "fslangmcp"
+      ]
+    },
     "GitHub": {
       "type": "http",
       "url": "https://api.githubcopilot.com/mcp/"
@@ -10,6 +19,15 @@
     }
   },
   "mcpServers": {
+    "F#": {
+      "type": "stdio",
+      "command": "dotnet",
+      "args": [
+        "tool",
+        "run",
+        "fslangmcp"
+      ]
+    },
     "GitHub": {
       "type": "http",
       "url": "https://api.githubcopilot.com/mcp/",
