@@ -12,7 +12,8 @@
   "mcpServers": {
     "GitHub": {
       "type": "http",
-      "url": "https://api.githubcopilot.com/mcp/"
+      "url": "https://api.githubcopilot.com/mcp/",
+      "headersHelper": "pwsh -NoProfile -File .claude/scripts/github-mcp-headers.ps1"
     },
     "Microsoft Docs": {
       "type": "http",
