@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using System.Collections.Immutable;
 using Hedgehog.Linq;
 using Range = Hedgehog.Linq.Range;
@@ -60,6 +61,50 @@ public sealed class DefaultGeneratorsTests
     [Fact]
     public void ShouldGenerateIEnumerable() =>
         Gen.AutoWith<IEnumerable<int>>(_config).ForAll().Select(x => x.Count() == 5).Check();
+
+    [Fact]
+    public void ShouldGenerateHashSet() =>
+        Gen.AutoWith<HashSet<int>>(_config).ForAll().Select(x => x.Count > 0).Check();
+
+    [Fact]
+    public void ShouldGenerateSortedSet() =>
+        Gen.AutoWith<SortedSet<int>>(_config).ForAll().Select(x => x.Count > 0).Check();
+
+    [Fact]
+    public void ShouldGenerateISet() =>
+        Gen.AutoWith<ISet<int>>(_config).ForAll().Select(x => x is HashSet<int> && x.Count > 0).Check();
+
+    [Fact]
+    public void ShouldGenerateICollection() =>
+        Gen.AutoWith<ICollection<int>>(_config).ForAll().Select(x => x.Count == 5).Check();
+
+    [Fact]
+    public void ShouldGenerateIReadOnlyCollection() =>
+        Gen.AutoWith<IReadOnlyCollection<int>>(_config).ForAll().Select(x => x.Count == 5).Check();
+
+    [Fact]
+    public void ShouldGenerateImmutableDictionary() =>
+        Gen.AutoWith<ImmutableDictionary<int, string>>(_config).ForAll().Select(x => x.Count > 0).Check();
+
+    [Fact]
+    public void ShouldGenerateImmutableSortedDictionary() =>
+        Gen.AutoWith<ImmutableSortedDictionary<int, string>>(_config).ForAll().Select(x => x.Count > 0).Check();
+
+    [Fact]
+    public void ShouldGenerateImmutableQueue() =>
+        Gen.AutoWith<ImmutableQueue<int>>(_config).ForAll().Select(x => x.Count() == 5).Check();
+
+    [Fact]
+    public void ShouldGenerateImmutableStack() =>
+        Gen.AutoWith<ImmutableStack<int>>(_config).ForAll().Select(x => x.Count() == 5).Check();
+
+    [Fact]
+    public void ShouldGenerateFrozenSet() =>
+        Gen.AutoWith<FrozenSet<int>>(_config).ForAll().Select(x => x.Count > 0).Check();
+
+    [Fact]
+    public void ShouldGenerateFrozenDictionary() =>
+        Gen.AutoWith<FrozenDictionary<int, string>>(_config).ForAll().Select(x => x.Count > 0).Check();
 
     [Fact]
     public void StressTest() =>

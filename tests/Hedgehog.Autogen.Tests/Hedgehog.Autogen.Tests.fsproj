@@ -14,6 +14,8 @@
         <Compile Include="ComplexGenericTest.fs" />
         <Compile Include="TypeUtilsTests.fs" />
         <Compile Include="GenTests.fs" />
+        <Compile Include="..\Hedgehog.Tests\TreeComparison.fs" Link="TreeComparison.fs" />
+        <Compile Include="CollectionTests.fs" />
     </ItemGroup>
 
     <ItemGroup>
