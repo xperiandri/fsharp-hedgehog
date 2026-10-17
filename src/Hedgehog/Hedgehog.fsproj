@@ -65,6 +65,7 @@ Failures are automatically simplified, giving developers coherent, intelligible 
     <Compile Include="Property.fs" />
   </ItemGroup>
   <ItemGroup Condition="'$(FABLE_COMPILER)' == ''">
+    <Compile Include="Collections\CollectionGen.fs" />
     <Compile Include="Autogen\TypeUtils.fs" />
     <Compile Include="Autogen\TypeShape.fs" />
     <Compile Include="Autogen\GeneratorCollection.fs" />
@@ -95,7 +96,7 @@ Failures are automatically simplified, giving developers coherent, intelligible 
   <!-- https://fable.io/docs/your-fable-project/author-a-fable-library.html -->
   <ItemGroup>
     <None Include="*.fsproj; **\*.fs"
-          Exclude="**\bin\**\*; **\obj\**\*; **\Autogen\**\*; **\Linq\**\*"
+          Exclude="**\bin\**\*; **\obj\**\*; **\Autogen\**\*; **\Collections\**\*; **\Linq\**\*"
           PackagePath="fable"
           Visible="false"
           Pack="true" />
