@@ -12,6 +12,7 @@ let allTests = testList "All tests" [
     GenTests.genTests
     ListGenTests.listGenTests
     ArrayCoreTests.arrayCoreTests
+    CollectionGenTests.collectionGenTests
     SeedTests.seedTests
     ShrinkTests.shrinkTests
     MinimalTests.minimalTests
