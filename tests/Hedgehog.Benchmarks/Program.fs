@@ -56,6 +56,7 @@ let main argv =
         BenchmarkRunner.Run<ScaledBenchmarks> () |> ignore
         BenchmarkRunner.Run<GenBenchmarks>() |> ignore
         BenchmarkRunner.Run<CollectionBenchmarks>() |> ignore
+        BenchmarkRunner.Run<CollectionGenBenchmarks>() |> ignore
     | _ ->
         // For example: -- --filter "*CollectionBenchmarks*"
         BenchmarkSwitcher.FromAssembly(typeof<Benchmarks>.Assembly).Run(argv) |> ignore

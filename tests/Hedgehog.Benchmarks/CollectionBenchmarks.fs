@@ -7,7 +7,7 @@ open Hedgehog
 open Hedgehog.FSharp
 open Hedgehog.Tests
 
-module private Bench =
+module internal Bench =
 
     // The seed and the size are fixed, so every run draws the same collections and the allocated memory is reproducible.
     let seed = Seed.from 42UL
