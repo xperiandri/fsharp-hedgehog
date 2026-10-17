@@ -4,6 +4,8 @@
   href: getting-started.md
 - name: Understanding Ranges
   href: ranges.md
+- name: Generating Collections
+  href: collections.md
 - name: Auto-Generation
   href: auto-generation.md
 - name: Async Properties
